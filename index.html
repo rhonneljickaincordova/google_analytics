@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Google Analytics</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+</head>
+<body>
+
+<div class="container-fluid">
+<br>
+<button id="auth-button" hidden>Authorize</button>
+
+  <div class="row">
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Session</div>
+          <div class="panel-body">
+            <h3><span id="session"></span></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Bounce Rate</div>
+          <div class="panel-body">
+            <h3><span id="bounceRate"></span></h3></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Page Views / Session</div>
+          <div class="panel-body">
+              <h3><span id="pageViewSession"></span></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">Page Views </div>
+          <div class="panel-body">
+                <h3><span id="pageView"></span></h3>
+          </div>
+        </div>
+      </div>
+     
+    </div>
+  
+
+<textarea cols="80" rows="20" hidden id="query-output"></textarea>
+
+
+</div>  
+
+<script src="js/jquery.js"></script>
+
+<!-- Bootstrap Core JavaScript -->
+<script src="js/bootstrap.min.js"></script>
+
+<script>
+
+  // Replace with your client ID from the developer console.
+  var CLIENT_ID = '249984434667-id0kfqcm2t87bqae8e3ivistjuno0uqi.apps.googleusercontent.com';
+
+  // Set authorized scope.
+  var SCOPES = ['https://www.googleapis.com/auth/analytics.readonly'];
+
+
+   var d = new Date();
+  var start_date = '2017-01-03';
+  var end_date = '';
+
+    month = '' + (d.getMonth() + 1),
+    day = '' + d.getDate(),
+    year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    end_date = [year, month, day].join('-');
+
+
+  function authorize(event) {
+    // Handles the authorization flow.
+    // `immediate` should be false when invoked from the button click.
+    var useImmdiate = event ? false : true;
+    var authData = {
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      immediate: useImmdiate
+    };
+
+    gapi.auth.authorize(authData, function(response) {
+      var authButton = document.getElementById('auth-button');
+      if (response.error) {
+        authButton.hidden = false;
+      }
+      else {
+        authButton.hidden = true;
+        queryAccounts();
+      }
+    });
+  }
+
+
+//   function run_all_days(){
+//     var value = [];
+//     value.push({ id: '1', 'start_date' : today() });
+//     value.push({ id: '2', 'start_date' : seven() });
+//     value.push({ id: '3', 'start_date' : fourteen() });
+//     value.push({ id: '4', 'start_date' : thirty() });
+//     return value;
+//   }
+
+//   function today(){
+//     console.log('now');
+ 
+//     month = '' + (d.getMonth() + 1),
+//     day = '' + d.getDate(),
+//     year = d.getFullYear();
+
+//     if (month.length < 2) month = '0' + month;
+//     if (day.length < 2) day = '0' + day;
+
+//     return [year, month, day].join('-');
+//   }
+
+// function seven(){
+//     console.log('7');
+//     start_date = '';
+//       start_date = d.setDate(d.getDate() - 7);
+//       month = '' + (d.getMonth() + 1),
+//       day = '' + d.getDate(),
+//       year = d.getFullYear();
+
+//     if (month.length < 2) month = '0' + month;
+//     if (day.length < 2) day = '0' + day;
+
+//      return [year, month, day].join('-');
+    
+// }
+// function fourteen(){
+//     console.log('14');
+
+//      start_date = '';
+//      start_date = d.setDate(d.getDate() - 14);
+//       month = '' + (d.getMonth() + 1),
+//       day = '' + d.getDate(),
+//       year = d.getFullYear();
+
+//     if (month.length < 2) month = '0' + month;
+//     if (day.length < 2) day = '0' + day;
+
+//      return [year, month, day].join('-');
+    
+// }
+
+// function thirty(){
+//     console.log('30');
+
+//       start_date = '';
+//       start_date = d.setDate(d.getDate() - 30);
+//       month = '' + (d.getMonth() + 1),
+//       day = '' + d.getDate(),
+//       year = d.getFullYear();
+
+//     if (month.length < 2) month = '0' + month;
+//     if (day.length < 2) day = '0' + day;
+    
+//     return [year, month, day].join('-');
+    
+// }
+
+
+function queryAccounts() {
+  // Load the Google Analytics client library.
+  gapi.client.load('analytics', 'v3').then(function() {
+
+    // Get a list of all Google Analytics accounts for this user
+    gapi.client.analytics.management.accounts.list().then(handleAccounts);
+  });
+}
+
+
+function handleAccounts(response) {
+  // Handles the response from the accounts list method.
+  if (response.result.items && response.result.items.length) {
+    // Get the first Google Analytics account.
+    var firstAccountId = response.result.items[0].id;
+
+    // Query for properties.
+    queryProperties(firstAccountId);
+  } else {
+    console.log('No accounts found for this user.');
+  }
+}
+
+
+function queryProperties(accountId) {
+  // Get a list of all the properties for the account.
+  gapi.client.analytics.management.webproperties.list(
+      {'accountId': accountId})
+    .then(handleProperties)
+    .then(null, function(err) {
+      // Log any errors.
+      console.log(err);
+  });
+}
+
+
+function handleProperties(response) {
+  // Handles the response from the webproperties list method.
+  if (response.result.items && response.result.items.length) {
+
+    // Get the first Google Analytics account
+    var firstAccountId = response.result.items[0].accountId;
+
+    // Get the first property ID
+    var firstPropertyId = response.result.items[0].id;
+
+    // Query for Views (Profiles).
+    queryProfiles(firstAccountId, firstPropertyId);
+  } else {
+    console.log('No properties found for this user.');
+  }
+}
+
+
+function queryProfiles(accountId, propertyId) {
+  // Get a list of all Views (Profiles) for the first property
+  // of the first Account.
+  gapi.client.analytics.management.profiles.list({
+      'accountId': accountId,
+      'webPropertyId': propertyId
+  })
+  .then(handleProfiles)
+  .then(null, function(err) {
+      // Log any errors.
+      console.log(err);
+  });
+}
+
+
+function handleProfiles(response) {
+  // Handles the response from the profiles list method.
+  if (response.result.items && response.result.items.length) {
+    // Get the first View (Profile) ID.
+    var firstProfileId = response.result.items[0].id;
+
+    // Query the Core Reporting API.
+    queryCoreReportingApi(firstProfileId);
+  } else {
+    console.log('No views (profiles) found for this user.');
+  }
+}
+
+
+function queryCoreReportingApi(profileId) {
+  // Query the Core Reporting API for the number sessions for
+  // the past seven days.
+  
+    gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:bounceRate',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      
+      // console.log(response.result);
+      var bounceRate = response.result.totalsForAllResults['ga:bounceRate'];
+      document.getElementById("bounceRate").textContent =parseFloat(bounceRate).toFixed(2) +'%' ;
+        
+      var formattedJson = JSON.stringify(response.result, null, 2);
+      document.getElementById('query-output').value = formattedJson;
+
+      session(profileId);
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+  
+}
+
+function session(profileId){
+   gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:sessions',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      
+      // console.log(response.result);
+      document.getElementById("session").textContent = response.result.totalsForAllResults['ga:sessions'];;
+     pageViewSession(profileId);
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+}
+
+function pageViewSession(profileId){
+   gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:pageviewsPerSession',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      
+       console.log(response.result);
+         var page_view = response.result.totalsForAllResults['ga:pageviewsPerSession'];
+      document.getElementById("pageViewSession").textContent =parseFloat(page_view).toFixed(2) +'%' ;
+        
+      pageView(profileId);
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+}
+
+function pageView(profileId){
+   gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:pageviews',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      
+      document.getElementById("pageView").textContent =response.result.totalsForAllResults['ga:pageviews'];
+        
+     
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+}
+
+  // Add an event listener to the 'auth-button'.
+  document.getElementById('auth-button').addEventListener('click', authorize);
+</script>
+
+<script src="https://apis.google.com/js/client.js?onload=authorize"></script>
+
+</body>
+</html>
