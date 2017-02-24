@@ -45,6 +45,40 @@
       </div>
      
     </div>
+
+     <div class="row">
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">1 Day Active Users</div>
+          <div class="panel-body">
+            <h3><span id="one"></span></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">7 Day Active Users</div>
+          <div class="panel-body">
+            <h3><span id="seven"></span></h3>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">14 Day Active Users</div>
+          <div class="panel-body">
+            <h3><span id="fourteen"></span></h3></div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="panel panel-primary">
+          <div class="panel-heading">30 Day Active Users</div>
+          <div class="panel-body">
+              <h3><span id="thirty"></span></h3>
+          </div>
+        </div>
+      </div>
+    </div>
   
 
 <textarea cols="80" rows="20" hidden id="query-output"></textarea>
@@ -101,75 +135,6 @@
       }
     });
   }
-
-
-//   function run_all_days(){
-//     var value = [];
-//     value.push({ id: '1', 'start_date' : today() });
-//     value.push({ id: '2', 'start_date' : seven() });
-//     value.push({ id: '3', 'start_date' : fourteen() });
-//     value.push({ id: '4', 'start_date' : thirty() });
-//     return value;
-//   }
-
-//   function today(){
-//     console.log('now');
- 
-//     month = '' + (d.getMonth() + 1),
-//     day = '' + d.getDate(),
-//     year = d.getFullYear();
-
-//     if (month.length < 2) month = '0' + month;
-//     if (day.length < 2) day = '0' + day;
-
-//     return [year, month, day].join('-');
-//   }
-
-// function seven(){
-//     console.log('7');
-//     start_date = '';
-//       start_date = d.setDate(d.getDate() - 7);
-//       month = '' + (d.getMonth() + 1),
-//       day = '' + d.getDate(),
-//       year = d.getFullYear();
-
-//     if (month.length < 2) month = '0' + month;
-//     if (day.length < 2) day = '0' + day;
-
-//      return [year, month, day].join('-');
-    
-// }
-// function fourteen(){
-//     console.log('14');
-
-//      start_date = '';
-//      start_date = d.setDate(d.getDate() - 14);
-//       month = '' + (d.getMonth() + 1),
-//       day = '' + d.getDate(),
-//       year = d.getFullYear();
-
-//     if (month.length < 2) month = '0' + month;
-//     if (day.length < 2) day = '0' + day;
-
-//      return [year, month, day].join('-');
-    
-// }
-
-// function thirty(){
-//     console.log('30');
-
-//       start_date = '';
-//       start_date = d.setDate(d.getDate() - 30);
-//       month = '' + (d.getMonth() + 1),
-//       day = '' + d.getDate(),
-//       year = d.getFullYear();
-
-//     if (month.length < 2) month = '0' + month;
-//     if (day.length < 2) day = '0' + day;
-    
-//     return [year, month, day].join('-');
-    
-// }
 
 
 function queryAccounts() {
@@ -330,12 +295,129 @@ function pageView(profileId){
     }).then(function(response) {
       
       document.getElementById("pageView").textContent =response.result.totalsForAllResults['ga:pageviews'];
-        
+      today(profileId);   
      
     }).then(null, function(err) {
         // Log any errors.
         console.log(err);
     });
+}
+ 
+function today(profileId){
+    start_date = '';
+      start_date = d.setDate(d.getDate() - 1);
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+     start_date =  [year, month, day].join('-');
+     console.log(start_date);
+
+      gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:1dayUsers',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      document.getElementById("one").textContent =response.result.totalsForAllResults['ga:1dayUsers'];
+      seven(profileId);   
+     
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+    
+}
+   
+
+function seven(profileId){
+    start_date = '';
+      start_date = d.setDate(d.getDate() - 7);
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+     start_date =  [year, month, day].join('-');
+     console.log(start_date);
+
+      gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:7dayUsers',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      document.getElementById("seven").textContent =response.result.totalsForAllResults['ga:7dayUsers'];
+      fourteen(profileId);   
+     
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+    
+}
+
+function fourteen(profileId){
+     start_date = '';
+     start_date = d.setDate(d.getDate() - 14);
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+
+    start_date  = [year, month, day].join('-');
+    console.log(start_date);
+    gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:14dayUsers',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      document.getElementById("fourteen").textContent =response.result.totalsForAllResults['ga:14dayUsers'];
+      thirty(profileId);   
+     
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+}
+
+function thirty(profileId){
+      start_date = '';
+      start_date = d.setDate(d.getDate() - 30);
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+    if (month.length < 2) month = '0' + month;
+    if (day.length < 2) day = '0' + day;
+    
+    start_date = [year, month, day].join('-');
+    console.log(start_date);
+    gapi.client.analytics.data.ga.get({
+      'ids': 'ga:' + profileId,
+      'start-date': start_date,
+      'end-date': 'today',
+      'metrics': 'ga:30dayUsers',
+      'dimensions' : 'ga:date'
+    }).then(function(response) {
+      document.getElementById("thirty").textContent =response.result.totalsForAllResults['ga:30dayUsers'];
+     
+    }).then(null, function(err) {
+        // Log any errors.
+        console.log(err);
+    });
+
 }
 
   // Add an event listener to the 'auth-button'.
